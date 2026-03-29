@@ -1,0 +1,7 @@
+*.pyc
+__pycache__/
+*.duckdb
+*.sqlite3
+.env
+staticfiles/
+data/

@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% block title %}Audit Dashboard — CDC Audit Demo{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Audit Dashboard</div>
+      <div class="page-subtitle">Real-time change log — mirrors production CDC pipeline</div>
+    </div>
+    <div class="live-indicator">
+      <div class="live-dot"></div>
+      live · polling every 5s
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Total Events</div>
+      <div class="stat-value stat-total" id="stat-total">{{ total_events }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">INSERT</div>
+      <div class="stat-value stat-insert">{{ op_counts.INSERT|default:0 }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">UPDATE</div>
+      <div class="stat-value stat-update">{{ op_counts.UPDATE|default:0 }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">DELETE</div>
+      <div class="stat-value stat-delete">{{ op_counts.DELETE|default:0 }}</div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="chart-row">
+    <div class="chart-card">
+      <div class="chart-title">Operations by table</div>
+      <canvas id="chartTable" class="chart-canvas" height="180"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Timeline (last 24h)</div>
+      <canvas id="chartTimeline" class="chart-canvas" height="180"></canvas>
+    </div>
+  </div>
+
+  <!-- Live event log -->
+  <div class="page-header" style="margin-bottom:16px;padding-bottom:16px">
+    <div class="page-title" style="font-size:14px">Recent Events</div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th><th>Table</th><th>Entity</th><th>Operation</th>
+          <th>Column</th><th>Change</th><th>Timestamp</th>
+        </tr>
+      </thead>
+      <tbody id="event-tbody">
+        {% for e in events %}
+        <tr>
+          <td class="td-mono td-muted">#{{ e.cdc_id }}</td>
+          <td class="td-mono">{{ e.table_name }}</td>
+          <td class="td-mono">#{{ e.entity_id }}</td>
+          <td><span class="badge badge-{{ e.operation|lower }}">{{ e.operation }}</span></td>
+          <td class="td-mono td-muted">{{ e.column_name }}</td>
+          <td>
+            {% if e.old_value != "—" or e.new_value != "—" %}
+              <span class="diff-old">{{ e.old_value|truncatechars:30 }}</span>
+              <span class="diff-arrow">→</span>
+              <span class="diff-new">{{ e.new_value|truncatechars:30 }}</span>
+            {% else %}—{% endif %}
+          </td>
+          <td class="td-mono td-muted" style="font-size:12px">{{ e.change_date }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="empty">
+          <div class="empty-icon">◎</div>
+          No events yet. Go create, edit, or delete a product or order.
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const INSERT_COLOR = '#6ee7b7';
+const UPDATE_COLOR = '#60a5fa';
+const DELETE_COLOR = '#f87171';
+const MUTED       = '#7a7f94';
+
+Chart.defaults.color = MUTED;
+Chart.defaults.borderColor = '#2a2d36';
+Chart.defaults.font.family = "'IBM Plex Mono', monospace";
+Chart.defaults.font.size = 11;
+
+// ── Per-table bar chart ──
+const perTableRaw = {{ per_table_json|safe }};
+const tableNames = [...new Set(perTableRaw.map(r => r.table))];
+const opColors = { INSERT: INSERT_COLOR, UPDATE: UPDATE_COLOR, DELETE: DELETE_COLOR };
+
+const tableDatasets = ['INSERT','UPDATE','DELETE'].map(op => ({
+  label: op,
+  data: tableNames.map(t => {
+    const row = perTableRaw.find(r => r.table === t && r.op === op);
+    return row ? row.cnt : 0;
+  }),
+  backgroundColor: opColors[op] + '33',
+  borderColor: opColors[op],
+  borderWidth: 1,
+  borderRadius: 3,
+}));
+
+new Chart(document.getElementById('chartTable'), {
+  type: 'bar',
+  data: { labels: tableNames, datasets: tableDatasets },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 14 } } },
+    scales: {
+      x: { grid: { color: '#2a2d36' } },
+      y: { grid: { color: '#2a2d36' }, beginAtZero: true, ticks: { precision: 0 } },
+    },
+  },
+});
+
+// ── Timeline line chart ──
+const timelineRaw = {{ timeline_json|safe }};
+const hours = [...new Set(timelineRaw.map(r => r.hour))].sort();
+const timelineDatasets = ['INSERT','UPDATE','DELETE'].map(op => ({
+  label: op,
+  data: hours.map(h => {
+    const row = timelineRaw.find(r => r.hour === h && r.op === op);
+    return row ? row.cnt : 0;
+  }),
+  borderColor: opColors[op],
+  backgroundColor: opColors[op] + '18',
+  borderWidth: 1.5,
+  fill: true,
+  tension: 0.3,
+  pointRadius: 2,
+}));
+
+new Chart(document.getElementById('chartTimeline'), {
+  type: 'line',
+  data: { labels: hours.map(h => h ? h.slice(11) : ''), datasets: timelineDatasets },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 14 } } },
+    scales: {
+      x: { grid: { color: '#2a2d36' } },
+      y: { grid: { color: '#2a2d36' }, beginAtZero: true, ticks: { precision: 0 } },
+    },
+  },
+});
+
+// ── Live polling ──
+let lastId = {{ events.0.cdc_id|default:0 }};
+
+function opBadge(op) {
+  return `<span class="badge badge-${op.toLowerCase()}">${op}</span>`;
+}
+
+async function poll() {
+  try {
+    const res = await fetch(`/audit/api/recent/?since=${lastId}`);
+    const data = await res.json();
+    if (!data.events.length) return;
+
+    const tbody = document.getElementById('event-tbody');
+    const emptyRow = tbody.querySelector('td[colspan]');
+    if (emptyRow) emptyRow.closest('tr').remove();
+
+    data.events.reverse().forEach(e => {
+      lastId = Math.max(lastId, e.cdc_id);
+      const diff = (e.old_value !== '—' || e.new_value !== '—')
+        ? `<span class="diff-old">${e.old_value.substring(0,30)}</span>
+           <span class="diff-arrow">→</span>
+           <span class="diff-new">${e.new_value.substring(0,30)}</span>`
+        : '—';
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="td-mono td-muted">#${e.cdc_id}</td>
+        <td class="td-mono">${e.table_name}</td>
+        <td class="td-mono">#${e.entity_id}</td>
+        <td>${opBadge(e.operation)}</td>
+        <td class="td-mono td-muted">${e.column_name}</td>
+        <td>${diff}</td>
+        <td class="td-mono td-muted" style="font-size:12px">${e.change_date}</td>`;
+      tr.style.animation = 'slideIn .3s ease';
+      tbody.insertBefore(tr, tbody.firstChild);
+      // keep table to 50 rows
+      while (tbody.rows.length > 50) tbody.deleteRow(tbody.rows.length - 1);
+    });
+  } catch(err) { /* silent */ }
+}
+
+setInterval(poll, 5000);
+</script>
+{% endblock %}

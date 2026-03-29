@@ -1,0 +1,11 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data   # persists SQLite + DuckDB between restarts
+    environment:
+      - DEBUG=true
+      - DJANGO_SECRET_KEY=demo-secret-not-for-production
+      - DUCKDB_PATH=/app/data/audit_log.duckdb

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Delete {{ type }} — CDC Audit Demo{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <div class="page-title">Confirm Delete</div>
+  </div>
+  <div class="confirm-card">
+    <div class="confirm-title">Delete {{ type }}</div>
+    <p style="color:var(--muted);margin-bottom:20px;font-size:13px">
+      Are you sure you want to delete <strong style="color:var(--text)">{{ object }}</strong>?<br>
+      A <span class="badge badge-delete" style="vertical-align:middle">DELETE</span> event will be recorded in the audit log.
+    </p>
+    <form method="post" style="display:flex;gap:10px">
+      {% csrf_token %}
+      <button class="btn btn-danger" type="submit">Yes, delete</button>
+      <a href="javascript:history.back()" class="btn btn-ghost">Cancel</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Products — CDC Audit Demo{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Products</div>
+      <div class="page-subtitle">Every change is captured in the audit log</div>
+    </div>
+    <a href="/products/new/" class="btn btn-primary">+ New Product</a>
+  </div>
+
+  <div class="search-row">
+    <form method="get" style="display:flex;gap:10px">
+      <input class="search-input" name="q" value="{{ q }}" placeholder="Search name, SKU, category…">
+      <button class="btn btn-ghost" type="submit">Search</button>
+      {% if q %}<a href="/" class="btn btn-ghost">Clear</a>{% endif %}
+    </form>
+    <a href="/orders/" class="btn btn-ghost" style="margin-left:auto">View Orders →</a>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th><th>Name</th><th>SKU</th><th>Category</th>
+          <th>Price</th><th>Stock</th><th>Status</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in products %}
+        <tr>
+          <td class="td-mono td-muted">#{{ p.pk }}</td>
+          <td>{{ p.name }}</td>
+          <td class="td-mono">{{ p.sku }}</td>
+          <td class="td-muted">{{ p.category|default:"—" }}</td>
+          <td class="td-mono">${{ p.price }}</td>
+          <td class="td-mono">{{ p.stock }}</td>
+          <td>
+            {% if p.active %}
+              <span class="badge badge-active">active</span>
+            {% else %}
+              <span class="badge badge-inactive">inactive</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="/products/{{ p.pk }}/edit/" class="btn btn-ghost btn-sm">Edit</a>
+            <a href="/products/{{ p.pk }}/delete/" class="btn btn-danger btn-sm">Delete</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="empty">
+          <div class="empty-icon">□</div>
+          No products yet. <a href="/products/new/" style="color:var(--accent)">Create one</a> to start capturing changes.
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
