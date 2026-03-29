@@ -41,7 +41,7 @@ In other words:
 
 ## Production architecture that inspired this demo
 
-The original production version follows a pipeline concept similar to this:
+The original archtecture version follows a pipeline concept similar to this:
 
 ```
 Source Database (SAS)
