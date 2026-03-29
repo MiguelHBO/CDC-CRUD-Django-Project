@@ -22,12 +22,14 @@ It is a **portfolio-safe recreation** of a **real CDC pipeline currently running
 
 The original production solution is based on a real business system database (SAS platform) and follows a modern **data engineering / medallion architecture** approach:
 
-- captures **CDC from source database tables**
-- processes raw changes through a **Python-based medallion pipeline**
-- exports data as **Parquet**
-- loads the processed output into a **Microsoft Fabric Warehouse**
-- supports analytical consumption and audit visibility over operational data
-
+- CDC is collected directly from **source database tables**
+- the processing logic is handled by a **Python job**
+- this job runs in **Azure Kubernetes Service (AKS)** as a scheduled workload
+- the execution happens **every 5 minutes**
+- raw and transformed data flows through a **medallion-style processing approach**
+- the processed output is generated in **Parquet**
+- the final dataset is loaded into a **Microsoft Fabric Warehouse**
+- the data is then consumed for **analytics, auditing, and reporting**
 Because the original implementation is part of a real production environment, this public repository recreates the same **core engineering concepts and architecture patterns** using tools that can run locally and safely for portfolio demonstration.
 
 In other words:
@@ -48,8 +50,11 @@ Source Database (SAS)
 Change Data Capture (CDC)
         │
         ▼
-Python processing pipeline
-(Medallion-style transformation)
+Python scheduled processing job
+(AKS Job / runs every 5 minutes)
+        │
+        ▼
+Medallion-style transformation
         │
         ▼
 Parquet generation
