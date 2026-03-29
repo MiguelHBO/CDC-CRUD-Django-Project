@@ -18,7 +18,7 @@ Every **INSERT**, **UPDATE**, and **DELETE** performed on the e-commerce entitie
 
 This repository is **not just a study project**.
 
-It is a **portfolio-safe recreation** of a **real CDC pipeline currently running in production**, implemented by me as part of my professional work.
+It is a **portfolio-safe recreation** of a **real CDC pipeline**, implemented by me as part of my professional work.
 
 The original production solution is based on a real business system database (SAS platform) and follows a modern **data engineering / medallion architecture** approach:
 
