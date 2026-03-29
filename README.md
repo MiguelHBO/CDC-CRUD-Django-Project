@@ -3,7 +3,61 @@
 A **Change Data Capture (CDC) pipeline** built with Django and DuckDB.  
 Every INSERT, UPDATE, and DELETE on the e-commerce data is captured at column-level granularity, stored in an analytical store, and visualised in real-time.
 
-This project is a **portfolio-safe reimplementation** of a production CDC service originally running on SQL Server + Microsoft Fabric Warehouse. The core concepts are identical — only the infrastructure was swapped for tools that run locally with zero accounts or cloud config required.
+This project simulates how a real-world data platform can:
+
+- capture **database changes in near real time**
+- process them into an **analytical audit layer**
+- separate **operational** and **analytical** workloads
+- expose the result through a **live monitoring dashboard**
+
+Every **INSERT**, **UPDATE**, and **DELETE** performed on the e-commerce entities is tracked at **column-level granularity**, stored in an analytical store, and visualized in the browser.
+
+---
+
+## About this project
+
+This repository is **not just a study project**.
+
+It is a **portfolio-safe recreation** of a **real CDC pipeline currently running in production**, implemented by me as part of my professional work.
+
+The original production solution is based on a real business system database (SAS platform) and follows a modern **data engineering / medallion architecture** approach:
+
+- captures **CDC from source database tables**
+- processes raw changes through a **Python-based medallion pipeline**
+- exports data as **Parquet**
+- loads the processed output into a **Microsoft Fabric Warehouse**
+- supports analytical consumption and audit visibility over operational data
+
+Because the original implementation is part of a real production environment, this public repository recreates the same **core engineering concepts and architecture patterns** using tools that can run locally and safely for portfolio demonstration.
+
+In other words:
+
+> **The business logic and architectural reasoning are based on a real production system.  
+> The infrastructure and tooling were adapted to make the project portable, reproducible, and safe to publish.**
+
+---
+
+## Production architecture that inspired this demo
+
+The original production version follows a pipeline concept similar to this:
+
+Source Database (SAS)
+        │
+        ▼
+Change Data Capture (CDC)
+        │
+        ▼
+Python processing pipeline
+(Medallion-style transformation)
+        │
+        ▼
+Parquet generation
+        │
+        ▼
+Microsoft Fabric Warehouse
+        │
+        ▼
+Consumption / Audit / Analytics
 
 ---
 
@@ -198,7 +252,3 @@ This demo runs Django's built-in dev server intentionally — it keeps the setup
 - The DuckDB file can be replaced with any SQLAlchemy-compatible analytical DB
 
 ---
-
-## License
-
-MIT
