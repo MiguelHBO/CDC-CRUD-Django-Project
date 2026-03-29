@@ -41,6 +41,7 @@ In other words:
 
 The original production version follows a pipeline concept similar to this:
 
+```
 Source Database (SAS)
         │
         ▼
@@ -58,6 +59,7 @@ Microsoft Fabric Warehouse
         │
         ▼
 Consumption / Audit / Analytics
+```
 
 ---
 
