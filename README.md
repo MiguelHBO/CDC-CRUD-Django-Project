@@ -81,7 +81,7 @@ The signal-based approach captures the same information as log-based CDC: **whic
 ## Quick start — 3 commands
 
 ```bash
-git clone https://github.com/your-username/cdc-audit-demo
+git clone https://github.com/MiguelHBO/CDC-CRUD-Django-Project.git
 cd cdc-audit-demo
 docker compose up --build
 ```
